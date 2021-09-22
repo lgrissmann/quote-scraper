@@ -16,6 +16,15 @@ authors = [
 
 domain = 'https://www.goodreads.com'
 
+def simple_sanitize(raw):
+    text_sanitized = ''
+
+    if raw:
+        text_sanitized = re.sub('[^a-zA-Z ]', '', raw)
+        
+    return text_sanitized.strip()
+
+
 class GoodreadsSpider(scrapy.Spider):
     name = "goodreads_spider"
     start_urls = []
@@ -30,6 +39,7 @@ class GoodreadsSpider(scrapy.Spider):
         self.start_urls = urls
         super().__init__(**kwargs) 
 
+    
 
     def parse(self, response):
         SET_SELECTOR = '.quoteText'
@@ -40,7 +50,9 @@ class GoodreadsSpider(scrapy.Spider):
         for quote in response.css(SET_SELECTOR):
             
             author = quote.css(AUTHOR_SELECTOR).extract_first()
-            book = quote.css(BOOK_SELECTOR).extract_first()
+            author = simple_sanitize("".join(author))
+
+            book = simple_sanitize(quote.css(BOOK_SELECTOR).extract_first())
 
             text_raw = quote.css(QUOTE_SELECTOR).extract()
             text_concat = " ".join(text_raw)  
